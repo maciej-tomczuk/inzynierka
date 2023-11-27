@@ -11,7 +11,7 @@ db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hashed = db.Column(db.String(120), nullable=False)
     name = db.Column(db.Text, nullable=False)
@@ -24,6 +24,20 @@ class User(db.Model):
         db.session.commit()
         return 
 
+class Expense(db.Model):
+    expense_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120), nullable=False)
+    paid_by = db.Column(db.String(50), nullable=False)
+    paid_amount = db.Column(db.Float, nullable=False)
+    owed_by = db.Column(db.String(50), nullable=False)
+    owed_amount = db.Column(db.Float, nullable=False)
+
+    @classmethod
+    def create(cls, title, paid_by, paid_amount, owed_by, owed_amount):
+        expense = cls(title=title, paid_by=paid_by, paid_amount=paid_amount, owed_by=owed_by, owed_amount=owed_amount)
+        db.session.add(expense)
+        db.session.commit()
+        return 
 
 @app.route('/')
 def hello():
