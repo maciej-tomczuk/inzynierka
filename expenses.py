@@ -11,11 +11,10 @@ db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 class User(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hashed = db.Column(db.String(120), nullable=False)
-    name = db.Column(db.Text, nullable=False)
-    date_joined = db.Column(db.Date(), nullable=False, default=date.today())
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(32), unique=True, nullable=False)
+    password_hashed = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(32), nullable=False)
 
     @classmethod
     def create(cls, username, password, name):
@@ -24,20 +23,59 @@ class User(db.Model):
         db.session.commit()
         return 
 
-class Expense(db.Model):
-    expense_id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120), nullable=False)
-    paid_by = db.Column(db.String(50), nullable=False)
-    paid_amount = db.Column(db.Float, nullable=False)
-    owed_by = db.Column(db.String(50), nullable=False)
-    owed_amount = db.Column(db.Float, nullable=False)
+class Group(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    group_name = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String(255))
 
     @classmethod
-    def create(cls, title, paid_by, paid_amount, owed_by, owed_amount):
-        expense = cls(title=title, paid_by=paid_by, paid_amount=paid_amount, owed_by=owed_by, owed_amount=owed_amount)
+    def create(cls, group_name, description):
+        group = cls(group_name=group_name, description=description)
+        db.session.add(group)
+        db.session.commit()
+        return 
+
+class GroupMember(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
+    role = db.Column(db.String(50))
+
+    @classmethod
+    def create(cls, user_id, group_id, role):
+        member = cls(user_id=user_id, group_id=group_id, role=role)
+        db.session.add(member)
+        db.session.commit()
+        return 
+
+class Expense(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    expense_id = db.Column(db.Integer, db.ForeignKey('expense.id'))
+    amount = db.Column(db.Float, nullable=False)
+    date = db.Column(db.DateTime)
+    description = db.Column(db.String(255))
+
+    @classmethod
+    def create(cls, user_id, amount, date, description):
+        expense = cls(user_id=user_id, amount=amount, date=date, description=description)
         db.session.add(expense)
         db.session.commit()
         return 
+
+class ExpenseShare(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    expense_id = db.Column(db.Integer, db.ForeignKey('expense.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    share = db.Column(db.Float, nullable=False)
+
+    @classmethod
+    def create(cls, expense_id, user_id, share):
+        share = cls(expense_id=expense_id, user_id=user_id, share=share)
+        db.session.add(share)
+        db.session.commit()
+        return 
+
 
 @app.route('/')
 def hello():
