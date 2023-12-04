@@ -1,14 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS, cross_origin
 from sqlalchemy.sql import text
 from datetime import date
-import os
+import json
 
 app = Flask(__name__)
 db_name = 'expenses.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_name
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
+CORS(app)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -94,8 +97,16 @@ def login():
 
 @app.route('/users', methods=['GET'])
 def get_users():
+    users_list = []
     users = User.query.all()
-    return jsonify({'users': [user.__dict__ for user in users]})
+    for user in users:
+        users_list.append({
+            'id' : user.id,
+            'username' : user.username,
+            'name' : user.name
+        })
+    print(json.dumps(users_list))
+    return json.dumps(users_list)
 
 @app.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
