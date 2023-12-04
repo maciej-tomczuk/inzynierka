@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 from datetime import date
@@ -76,18 +76,52 @@ class ExpenseShare(db.Model):
         db.session.commit()
         return 
 
-
 @app.route('/')
-def hello():
-    user = User.create('wiaderekcsij', 'niczy', 'jolxd')
-    return 'Hello, World!'
+def start():
+    return 'Expenses app'
 
-@app.route('/show')
-def show():
+@app.route('/login', methods=['POST'])
+def login():
+    data =request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    user = User.query.filter_by(username=username).first()
+    if user and password == user.password:
+        return jsonify({'user': username}), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
+
+@app.route('/users', methods=['GET'])
+def get_users():
     users = User.query.all()
-    user_list = '\n'.join([f'Username: {user.username}, Name: {user.name}' for user in users])
-    return f'{user_list}'
+    return jsonify({'users': [user.__dict__ for user in users]})
 
+@app.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.__dict__)
+
+@app.route('/users', methods=['POST'])
+def create_user():
+    data = request.json
+    username = data.get('username')
+    password_hashed = data.get('password_hashed')
+    name = data.get('name')
+
+    user = User.create(username, password_hashed, name)
+    
+    if user:
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'message': 'User created successfully'})
+    else:
+        return jsonify({'error':'Invalid credentials'}, 401)
+
+@app.route('/groups', methods=['GET'])
+def get_groups():
+    groups = Group.query.all()
+    return jsonify({'groups': [group.__dict__ for group in groups]})
 
 if __name__ == '__main__':
     with app.app_context():
