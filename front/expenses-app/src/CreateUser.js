@@ -10,7 +10,7 @@ const CreateUser = () => {
     e.preventDefault();
 
     try {
-      await axios.post('http://localhost:5000/users', {
+      await axios.post('http://localhost:5000/user', {
         username,
         password_hashed: password,
         name
