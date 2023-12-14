@@ -127,11 +127,7 @@ def get_users():
     users_list = []
     users = User.query.all()
     for user in users:
-        users_list.append({
-            'id' : user.id,
-            'username' : user.username,
-            'name' : user.name
-        })
+        users_list.append(user.serialize())
     return json.dumps(users_list)
 
 @app.route('/user/<int:user_id>', methods=['GET'])
@@ -159,11 +155,7 @@ def get_groups():
     group_list = []
     groups = Group.query.all()
     for group in groups:
-            group_list.append({
-                'id' : group.id,
-                'group_name' : group.group_name,
-                'description' : group.description
-            })
+            group_list.append(group.serialzie())
     return json.dumps(group_list)
 
 @app.route('/group/<int:group_id>', methods=['GET'])
@@ -190,11 +182,7 @@ def get_members(group_id):
     member_list = []
     members = GroupMember.query.filter_by(group_id=group_id).all()
     for member in members:
-            member_list.append({
-                'id' : member.id,
-                'user_name' : member.user.name,
-                'role' : member.role
-            })
+            member_list.append(member.serialize())
     return json.dumps(member_list)
 
 @app.route('/member', methods=['POST'])
@@ -221,14 +209,7 @@ def get_expenses():
     expense_list = []
     expenses = Expense.query.all()
     for expense in expenses:
-            expense_list.append({
-                'id' : expense.id,
-                'owner' : expense.owner.name,
-                'group' : expense.in_group.group_name,
-                'amount' : expense.amount,
-                'description' : expense.description,
-                'date' : expense.date.isoformat()
-            })
+            expense_list.append(expense.serialize())
     return json.dumps(expense_list)
 
 @app.route('/expense/<int:expense_id>', methods=['GET'])
@@ -261,12 +242,7 @@ def get_shares(expense_id):
     share_list = []
     shares = ExpenseShare.query.filter_by(expense_id=expense_id).all()
     for share in shares:
-            share_list.append({
-                'id' : share.id,
-                'owed_by' : share.owed_by.name,
-                'expense_id' : share.expense.id,
-                'share' : share.share
-            })
+            share_list.append(share.serialize())
     return json.dumps(share_list)
 
 @app.route('/share', methods=['POST'])
