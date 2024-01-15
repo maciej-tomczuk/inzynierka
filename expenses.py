@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_name
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
+
 CORS(app)
 
 class User(db.Model):
@@ -150,12 +151,34 @@ def create_user():
     else:
         return jsonify({'error':'Invalid credentials'}), 401
 
+@app.route('/user/<int:user_id>', methods=['POST'])
+def update_user(user_id):
+    data = request.json
+    password_hashed = data.get('password_hashed')
+    name = data.get('name')
+    user = User.query.get(user_id)
+
+    if user:
+        user.password_hashed = password_hashed
+        user.name = name
+        print(user)
+        db.session.commit()
+        return jsonify({'message': 'User updated successfully'})
+    else:
+        return jsonify({'error':'Invalid credentials'}), 401
+    
+@app.route('/user/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    User.query.filter(User.id == user_id).delete()
+    db.session.commit()
+    return jsonify({'message': 'User deleted successfully'})
+
 @app.route('/group', methods=['GET'])
 def get_groups():
     group_list = []
     groups = Group.query.all()
     for group in groups:
-            group_list.append(group.serialzie())
+            group_list.append(group.serialize())
     return json.dumps(group_list)
 
 @app.route('/group/<int:group_id>', methods=['GET'])
@@ -176,6 +199,28 @@ def create_group():
         return jsonify({'message': 'Group created successfully'})
     else:
         return jsonify({'error':'Invalid credentials'}), 401
+    
+@app.route('/group/<int:group_id>', methods=['POST'])
+def update_group(group_id):
+    data = request.json
+    name = data.get('name')
+    description = data.get('description')
+    group = Group.query.get(group_id)
+
+    if group:
+        group.name = name
+        group.description = description
+        db.session.commit()
+        return jsonify({'message': 'Group updated successfully'})
+    else:
+        return jsonify({'error':'Invalid credentials'}), 401
+    
+@app.route('/group/<int:group_id>', methods=['DELETE'])
+def delete_group(group_id):
+    Group.query.filter(Group.id == group_id).delete()
+    GroupMember.query.filter_by(group_id=group_id).delete()
+    db.session.commit()
+    return jsonify({'message': 'Group deleted successfully'})
     
 @app.route('/member/<int:group_id>', methods=['GET'])
 def get_members(group_id):
@@ -203,14 +248,33 @@ def add_member():
         return jsonify({'message': 'Member added successfully'})
     else:
         return jsonify({'error':'Invalid credentials'}), 404
+
+@app.route('/member/<int:member_id>', methods=['POST'])
+def update_member(member_id):
+    data = request.json
+    role = data.get('role')
+    member = GroupMember.query.get(member_id)
+
+    if member:
+        member.name = role
+        db.session.commit()
+        return jsonify({'message': 'Group member updated successfully'})
+    else:
+        return jsonify({'error':'Invalid credentials'}), 401
     
+@app.route('/member/<int:member_id>', methods=['DELETE'])
+def delete_member(member_id):
+    GroupMember.query.filter(GroupMember.id == member_id).delete()
+    db.session.commit()
+    return jsonify({'message': 'Member removed from group successfully'})
+
 @app.route('/expense', methods=['GET'])
 def get_expenses():
     expense_list = []
     expenses = Expense.query.all()
     for expense in expenses:
             expense_list.append(expense.serialize())
-    return json.dumps(expense_list)
+    return jsonify(expense_list)
 
 @app.route('/expense/<int:expense_id>', methods=['GET'])
 def get_expense(expense_id):
@@ -237,6 +301,28 @@ def create_expense():
     else:
         return jsonify({'error':'Unexpected error'}), 401
     
+@app.route('/expense/<int:expense_id>', methods=['POST'])
+def update_expense(expense_id):
+    data = request.json
+    amount = data.get('amount')
+    description = data.get('description')
+    expense = Expense.query.get(expense_id)
+
+    if expense:
+        expense.amount = amount
+        expense.description = description
+        db.session.commit()
+        return jsonify({'message': 'Expense updated successfully'})
+    else:
+        return jsonify({'error':'Invalid credentials'}), 401
+    
+@app.route('/expense/<int:expense_id>', methods=['DELETE'])
+def delete_expense(expense_id):
+    Expense.query.filter(Expense.id == expense_id).delete()
+    ExpenseShare.query.filter_by(expense_id=expense_id).delete()
+    db.session.commit()
+    return jsonify({'message': 'Expense deleted successfully'})
+    
 @app.route('/share/<int:expense_id>', methods=['GET'])
 def get_shares(expense_id):
     share_list = []
@@ -251,18 +337,37 @@ def add_share():
     user_id = data.get('user_id')
     expense_id = data.get('expense_id')
     share = data.get('share')
-    share = ExpenseShare.create(user_id, expense_id, share)
+    shareobj = ExpenseShare.create(user_id, expense_id, share)
 
     if not User.query.get(user_id):
         return jsonify({'error':'User does not exist'}), 404
     if not Expense.query.get(expense_id):
         return jsonify({'error':'Expense does not exist'}), 404
-    if share:
-        db.session.add(share)
+    if shareobj:
+        db.session.add(shareobj)
         db.session.commit()
         return jsonify({'message': 'Share added successfully'})
     else:
         return jsonify({'error':'Invalid credentials'}), 404
+    
+@app.route('/share/<int:share_id>', methods=['POST'])
+def update_share(share_id):
+    data = request.json
+    share = data.get('share')
+    shareobj = ExpenseShare.query.get(share_id)
+
+    if shareobj:
+        shareobj.share = share
+        db.session.commit()
+        return jsonify({'message': 'Share updated successfully'})
+    else:
+        return jsonify({'error':'Invalid credentials'}), 401
+    
+@app.route('/share/<int:share_id>', methods=['DELETE'])
+def delete_share(share_id):
+    ExpenseShare.query.filter(ExpenseShare.id == share_id).delete()
+    db.session.commit()
+    return jsonify({'message': 'User removed from expense successfully'})
 
 if __name__ == '__main__':
     with app.app_context():
