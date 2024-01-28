@@ -10,8 +10,6 @@ db_name = 'expenses.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_name
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-
-
 CORS(app)
 
 class User(db.Model):
@@ -86,8 +84,8 @@ class Expense(db.Model):
         return {"id":  self.id,
                 "user_id": self.user_id,
                 "group_id": self.group_id,
-                "amount": self.date,
-                "date": self.date.isoformat(),
+                "amount": self.amount,
+                "date": self.date,
                 "description": self.description}
 
 class ExpenseShare(db.Model):
@@ -113,13 +111,13 @@ def start():
 
 @app.route('/login', methods=['POST'])
 def login():
-    data =request.get_json()
+    data = request.get_json()
     username = data.get('username')
-    password = data.get('password')
+    password = data.get('password_hashed')
 
     user = User.query.filter_by(username=username).first()
     if user and password == user.password_hashed:
-        return jsonify({'user': username}), 200
+        return user.serialize(), 200
     else:
         return jsonify({'error': 'User not found'}), 404
 
@@ -147,7 +145,8 @@ def create_user():
     if user:
         db.session.add(user)
         db.session.commit()
-        return jsonify({'message': 'User created successfully'})
+        user =  User.query.filter_by(username=username).first()
+        return user.serialize()
     else:
         return jsonify({'error':'Invalid credentials'}), 401
 
@@ -281,6 +280,15 @@ def get_expense(expense_id):
     expense = Expense.query.get(expense_id)
     return jsonify(expense.serialize())
 
+@app.route('/expense/g/<int:group_id>', methods=['GET'])
+def get_expense_by_group(group_id):
+    expense_list = []
+    expenses = Expense.query.filter_by(group_id = group_id)
+    for expense in expenses:
+            expense_list.append(expense.serialize())
+    return jsonify(expense_list)
+
+
 @app.route('/expense', methods=['POST'])
 def create_expense():
     data = request.json
@@ -331,13 +339,21 @@ def get_shares(expense_id):
             share_list.append(share.serialize())
     return json.dumps(share_list)
 
+@app.route('/share/u/<int:user_id>', methods=['GET'])
+def get_shares_by_user(user_id):
+    share_list = []
+    shares = ExpenseShare.query.filter_by(user_id=user_id).all()
+    for share in shares:
+            share_list.append(share.serialize())
+    return json.dumps(share_list)
+
 @app.route('/share', methods=['POST'])
 def add_share():
     data = request.json
     user_id = data.get('user_id')
     expense_id = data.get('expense_id')
     share = data.get('share')
-    shareobj = ExpenseShare.create(user_id, expense_id, share)
+    shareobj = ExpenseShare.create(expense_id, user_id, share)
 
     if not User.query.get(user_id):
         return jsonify({'error':'User does not exist'}), 404
