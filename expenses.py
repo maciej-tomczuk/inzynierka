@@ -105,6 +105,18 @@ class ExpenseShare(db.Model):
                 "user_id": self.user_id,
                 "share": self.share}
 
+def calculate_balance(user_id):
+    balance = 0
+    expenses = Expense.query.filter_by(user_id=user_id).all()
+    shares = ExpenseShare.query.filter_by(user_id=user_id).all()
+    
+    for expense in expenses:
+        balance += expense.amount
+
+    for share in shares:
+        balance -= share.share
+    return balance
+
 @app.route('/')
 def start():
     return 'Expenses app'
@@ -126,13 +138,17 @@ def get_users():
     users_list = []
     users = User.query.all()
     for user in users:
-        users_list.append(user.serialize())
+        userparsed =  user.serialize()
+        userparsed["balance"] =  calculate_balance(user.id)
+        users_list.append(userparsed)
     return json.dumps(users_list)
 
 @app.route('/user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = User.query.get(user_id)
-    return jsonify(user.serialize())
+    userparsed =  user.serialize()
+    userparsed["balance"] =  calculate_balance(user.id)
+    return jsonify(userparsed)
 
 @app.route('/user', methods=['POST'])
 def create_user():
@@ -160,7 +176,6 @@ def update_user(user_id):
     if user:
         user.password_hashed = password_hashed
         user.name = name
-        print(user)
         db.session.commit()
         return jsonify({'message': 'User updated successfully'})
     else:
@@ -202,12 +217,12 @@ def create_group():
 @app.route('/group/<int:group_id>', methods=['POST'])
 def update_group(group_id):
     data = request.json
-    name = data.get('name')
+    name = data.get('group_name')
     description = data.get('description')
     group = Group.query.get(group_id)
 
     if group:
-        group.name = name
+        group.group_name = name
         group.description = description
         db.session.commit()
         return jsonify({'message': 'Group updated successfully'})
@@ -255,7 +270,7 @@ def update_member(member_id):
     member = GroupMember.query.get(member_id)
 
     if member:
-        member.name = role
+        member.role = role
         db.session.commit()
         return jsonify({'message': 'Group member updated successfully'})
     else:

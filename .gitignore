@@ -1,0 +1,7 @@
+testing/
+img/
+node_modules/
+swagger-ui/
+instance/
+package-*
+*.pdf
