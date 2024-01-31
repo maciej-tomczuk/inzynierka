@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 
-export default function GroupAdd(){
+export default function GroupUpdate(){
     const [name, setName] =  useState('');
     const [description, setDesc] =  useState('');
+    const [group_id, setGroupId] =  useState('');
 
-    const handleAddGroup = async() =>{
-        fetch('http://localhost:5000/group', {
+    const handleUpdateGroup = async() =>{
+        fetch('http://localhost:5000/group/' + group_id, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -18,20 +19,24 @@ export default function GroupAdd(){
               else return response.json();
           })
           .catch ((error) => {
-            console.error('Error during adding group:', error);
+            console.error('Error during updating group:', error);
           });
     };
 
     return (
         <div>
-          <h2>Add group</h2>
+          <h2>Update group</h2>
+
+          <label>ID:</label>
+          <input type="text" value={group_id} onChange={(e) => setGroupId(e.target.value)} />
+
           <label>Name:</label>
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
     
           <label>Description:</label>
           <input type="text" value={description} onChange={(e) => setDesc(e.target.value)} />
     
-          <button onClick={handleAddGroup}>Add group</button>
+          <button onClick={handleUpdateGroup}>Update group</button>
           
         </div>
       );

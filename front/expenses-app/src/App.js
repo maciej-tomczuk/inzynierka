@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom"
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import './App.css';
@@ -11,10 +11,7 @@ import GroupMembersList from './lists/GroupMembersList';
 import ShareList from './lists/ShareList';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
-import ShareAdd from './add/ShareAdd';
-import ExpenseAdd from './add/ExpenseAdd';
-import GroupAdd from './add/GroupAdd';
-import MemberAdd from './add/MemberAdd';
+import UserUpdate from './update/UserUpdate';
 
 function App() {
   const [user, setUserName] = useState([]);
@@ -55,6 +52,7 @@ function App() {
               },
             }}
             >
+              <MenuItem component={<Link to="/userpage"/>}>Change your data</MenuItem>
               <MenuItem component={<Link to="/users"/>}>Users</MenuItem>
               <MenuItem component={<Link to="/groups"/>}>Groups</MenuItem>
               <MenuItem component={<Link to="/members"/>}>Members</MenuItem>
@@ -66,6 +64,7 @@ function App() {
           </div>
           <div id='div2'>
             <Routes>
+              <Route  path="/userpage" element={<UserUpdate user_id={user.id}/>}/>
               <Route  path="/users" element={<UserList/>}/>
               <Route  path="/shares" element={<ShareList user_id={user.id}/>}/>
               <Route  path="/expenses" element={<ExpenseList user={user}/>}/>

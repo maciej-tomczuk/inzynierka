@@ -17,8 +17,9 @@ function LoginForm({ onLogin, switchToRegister }) {
         body: JSON.stringify({ username:username, password_hashed:password_hashed }),
       })
       .then((response) => {
-        if (!response.ok) 
+        if (!response.ok){ 
           throw new Error(response.status);
+        }
           else return response.json();
       })
       .then((data) =>{
@@ -27,7 +28,6 @@ function LoginForm({ onLogin, switchToRegister }) {
       .catch ((error) => {
         console.error('Error during login:', error);
       });
-
     };
 
   return (

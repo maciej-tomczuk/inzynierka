@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import GroupAdd from '../add/GroupAdd';
-import MemberAdd from '../add/MemberAdd';
+import GroupDelete from '../delete/GroupDelete';
+import GroupUpdate from '../update/GroupUpdate';
 
 export default function GroupList() {
   const [groups, setGroups] = useState([]);
   const [addGroup, setAddGroup]  = useState(false);
-  const [addMember, setAddMember]  = useState(false);
+  const [deleteGroup, setDeleteGroup]  = useState(false);
+  const [updateGroup, setUpdateGroup]  = useState(false);
 
   const handleAddGroup =  async() =>  {
     setAddGroup(!addGroup);
   }
-
-  const handleAddMember =  async() =>  {
-    setAddMember(!addMember);
+  const handleDeleteGroup =  async() =>  {
+    setDeleteGroup(!deleteGroup);
+  }
+  const handleUpdateGroup =  async() =>  {
+    setUpdateGroup(!updateGroup);
   }
 
   useEffect(() => {
@@ -26,17 +30,23 @@ export default function GroupList() {
       <h2>Group List</h2>
       <ul>
         {groups.map((group) => (
-          <li key={group.id}>{group.group_name}</li>
+          <li key={group.id}>Group ID:{group.id}, group name: {group.group_name}, decsription: {group.description}</li>
         ))}
       </ul>
       <button onClick={handleAddGroup}>Add group</button>
-      <button onClick={handleAddMember}>Add member</button>
+      <button onClick={handleUpdateGroup}>Update group</button>
+      <button onClick={handleDeleteGroup}>Delete group</button>
+      
       {addGroup  && <div>
         <GroupAdd/>
       </div>
       }
-      {addMember  && <div>
-        <MemberAdd/>
+      {deleteGroup  && <div>
+        <GroupDelete/>
+      </div>
+      }
+      {updateGroup  && <div>
+        <GroupUpdate/>
       </div>
       }
     </>

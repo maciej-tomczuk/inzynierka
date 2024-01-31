@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function MemberAdd(){
+export default function MemberAdd(){
     const [group, setGroup] =  useState('');
     const [user, setUser] =  useState('');
     const [role, setRole] =  useState('');
@@ -40,5 +40,3 @@ function MemberAdd(){
         </div>
       );
 }
-
-export default MemberAdd;

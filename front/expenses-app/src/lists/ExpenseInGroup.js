@@ -18,7 +18,7 @@ function ExpenseInGroupList() {
       <button onClick={handleExpenses}>Show</button>  
       <ul>
         {expenses.map((expense) => (
-          <li key={expense.id}>{expense.id} - {expense.amount} zł, data wydatku: {expense.date}</li>
+          <li key={expense.id}>Expense ID: {expense.id}, amount: {expense.amount} zł, description: {expense.description}, owner: {expense.user_id} date: {expense.date}</li>
         ))}
       </ul>
     </div>
